@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Результаты{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-md-8">
+    <div class="card p-4 mb-4 text-center">
+        <h3 class="fw-bold">{{ test.title }}</h3>
+        <div class="display-4 fw-bold text-primary my-3">{{ session.score }} / {{ total_points }}</div>
+        <p class="text-muted">Завершено: {{ session.submitted_at|date:"d.m.Y H:i" }}</p>
+    </div>
+
+    {% for answer in answers %}
+    <div class="card p-4 mb-3 border-start border-4
+        {% if answer.is_correct == True %}border-success
+        {% elif answer.is_correct == False %}border-danger
+        {% else %}border-warning{% endif %}">
+        <div class="d-flex justify-content-between">
+            <p class="fw-semibold mb-2">{{ forloop.counter }}. {{ answer.question.text }}</p>
+            <span>
+                {% if answer.is_correct == True %}<span class="badge bg-success">✓ {{ answer.points_earned }} б.</span>
+                {% elif answer.is_correct == False %}<span class="badge bg-danger">✗ 0 б.</span>
+                {% else %}<span class="badge bg-warning text-dark">На проверке</span>{% endif %}
+            </span>
+        </div>
+
+        {% if answer.question.question_type in 'single,multiple' %}
+            {% for choice in answer.selected_choices.all %}
+            <span class="badge bg-secondary me-1">{{ choice.text }}</span>
+            {% endfor %}
+        {% elif answer.text_answer %}
+            <p class="mb-0 text-muted">Ваш ответ: {{ answer.text_answer }}</p>
+        {% elif answer.file_answer %}
+            <a href="{{ answer.file_answer.url }}" target="_blank">Скачать файл</a>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    <a href="/classroom/{{ test.classroom.pk }}/" class="btn btn-outline-primary">← Назад к классу</a>
+</div>
+</div>
+{% endblock %}

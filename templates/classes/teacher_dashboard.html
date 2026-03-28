@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Мои классы{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0">Мои классы</h2>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModal">
+        <i class="bi bi-plus-lg"></i> Создать класс
+    </button>
+</div>
+
+{% if classrooms %}
+<div class="row g-4">
+    {% for classroom in classrooms %}
+    <div class="col-md-4">
+        <div class="card p-4 h-100">
+            <h5 class="fw-bold">{{ classroom.name }}</h5>
+            <p class="text-muted mb-1">Учеников: {{ classroom.memberships.count }}</p>
+            <p class="mb-3">Токен: <span class="badge-token">{{ classroom.token }}</span></p>
+            <a href="/classroom/{{ classroom.pk }}/" class="btn btn-outline-primary btn-sm mt-auto">Открыть</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center text-muted mt-5">
+    <i class="bi bi-folder-plus" style="font-size:3rem"></i>
+    <p class="mt-2">У вас пока нет классов. Создайте первый!</p>
+</div>
+{% endif %}
+
+<div class="modal fade" id="createModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Новый класс</h5></div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <label class="form-label">Название класса</label>
+                    <input type="text" name="name" class="form-control" placeholder="Например: 10А Математика" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Создать</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

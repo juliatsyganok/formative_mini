@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}Статистика — {{ test.title }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold mb-0">Статистика: {{ test.title }}</h3>
+    <a href="/classroom/{{ test.classroom.pk }}/" class="btn btn-outline-secondary btn-sm">← К классу</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <div class="fs-2 fw-bold text-primary">{{ sessions.count }}</div>
+            <div class="text-muted small">Сдали тест</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <div class="fs-2 fw-bold text-success">{{ total_points }}</div>
+            <div class="text-muted small">Макс. баллов</div>
+        </div>
+    </div>
+</div>
+
+<!-- Таблица: ученики × вопросы -->
+<div class="card mb-4">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+        <table class="table table-bordered mb-0" style="min-width: 600px">
+            <thead class="table-light">
+                <tr>
+                    <th style="min-width:160px">Ученик</th>
+                    <th>Итог</th>
+                    {% for item in stats %}
+                    <th class="text-center" style="min-width:48px" title="{{ item.question.text }}">
+                        <span class="text-muted small">В{{ forloop.counter }}</span><br>
+                        <span class="badge bg-light text-dark">{{ item.question.points }}б</span>
+                    </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for session in sessions %}
+                <tr>
+                    <td class="fw-semibold">{{ session.student.get_full_name|default:session.student.username }}</td>
+                    <td>
+                        <span class="fw-bold">{{ session.score }}/{{ total_points }}</span>
+                        <div class="progress mt-1" style="height:4px">
+                            <div class="progress-bar bg-primary" style="width:{% widthratio session.score total_points 100 %}%"></div>
+                        </div>
+                    </td>
+                    {% for item in stats %}
+                    {% with answer=session_answers|default:'' %}
+                    <td class="text-center p-1">
+                        {% for ans in session.answers.all %}
+                            {% if ans.question.id == item.question.id %}
+                                {% if ans.is_correct == True %}
+                                    <span class="badge bg-success w-100" title="{{ ans.points_earned }}/{{ item.question.points }} б">✓</span>
+                                {% elif ans.is_correct == False %}
+                                    {% if ans.points_earned and ans.points_earned > 0 %}
+                                        <span class="badge bg-warning text-dark w-100" title="{{ ans.points_earned }}/{{ item.question.points }} б">~</span>
+                                    {% else %}
+                                        <span class="badge bg-danger w-100" title="0/{{ item.question.points }} б">✗</span>
+                                    {% endif %}
+                                {% elif ans.is_correct == None %}
+                                    <span class="badge bg-secondary w-100" title="На проверке">?</span>
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    </td>
+                    {% endwith %}
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+
+<!-- Легенда -->
+<div class="d-flex gap-3 mb-4 flex-wrap">
+    <span><span class="badge bg-success">✓</span> Правильно</span>
+    <span><span class="badge bg-warning text-dark">~</span> Частично</span>
+    <span><span class="badge bg-danger">✗</span> Неправильно</span>
+    <span><span class="badge bg-secondary">?</span> На проверке у учителя</span>
+    <span><span class="badge bg-light text-dark border">пусто</span> Не отвечено</span>
+</div>
+
+<!-- По вопросам -->
+<h5 class="mb-3">Сложность вопросов</h5>
+{% for item in stats %}
+<div class="card p-3 mb-2">
+    <div class="d-flex justify-content-between align-items-center mb-1">
+        <span><strong>В{{ forloop.counter }}.</strong> {{ item.question.text|truncatechars:80 }}
+            <span class="badge bg-light text-dark ms-1">{{ item.question.points }} б.</span>
+        </span>
+        <span class="text-muted small">{{ item.correct_count }}/{{ item.total_count }} правильно ({{ item.percent }}%)</span>
+    </div>
+    <div class="progress" style="height:8px">
+        <div class="progress-bar 
+            {% if item.percent >= 70 %}bg-success
+            {% elif item.percent >= 40 %}bg-warning
+            {% else %}bg-danger{% endif %}"
+            style="width:{{ item.percent }}%">
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

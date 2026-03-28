@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load test_extras %}
+{% block title %}{{ test.title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-md-8">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="fw-bold mb-0">{{ test.title }}</h3>
+        {% if test.time_limit %}
+        <span class="badge bg-warning text-dark fs-6" id="timer">{{ test.time_limit }}:00</span>
+        {% endif %}
+    </div>
+    {% if test.description %}<p class="text-muted mb-3">{{ test.description }}</p>{% endif %}
+
+    <form method="post" action="/tests/{{ test.pk }}/submit/" enctype="multipart/form-data" id="testForm">
+        {% csrf_token %}
+        {% for question in questions %}
+        {% with saved=existing_answers|get_item:question.id %}
+        <div class="card p-4 mb-3">
+            <div class="d-flex justify-content-between">
+                <p class="fw-semibold mb-2">{{ forloop.counter }}. {{ question.text }}</p>
+                <span class="text-muted small ms-2 text-nowrap">{{ question.points }} б.</span>
+            </div>
+            {% if question.image %}
+            <img src="{{ question.image.url }}" class="img-fluid rounded mb-2" style="max-height:300px">
+            {% endif %}
+            {% if question.attachment %}
+            <a href="{{ question.attachment.url }}" class="btn btn-outline-secondary btn-sm mb-2 d-inline-block" target="_blank">
+                <i class="bi bi-paperclip"></i> Прикреплённый файл
+            </a>
+            {% endif %}
+
+            {% if question.question_type == 'single' %}
+                {% for choice in question.choices.all %}
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="q_{{ question.id }}" value="{{ choice.id }}"
+                        {% if saved %}{% if choice.id|in_list:saved.selected_ids %}checked{% endif %}{% endif %}>
+                    <label class="form-check-label">{{ choice.text }}</label>
+                </div>
+                {% endfor %}
+
+            {% elif question.question_type == 'multiple' %}
+                {% for choice in question.choices.all %}
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="q_{{ question.id }}" value="{{ choice.id }}"
+                        {% if saved %}{% if choice.id|in_list:saved.selected_ids %}checked{% endif %}{% endif %}>
+                    <label class="form-check-label">{{ choice.text }}</label>
+                </div>
+                {% endfor %}
+
+            {% elif question.question_type == 'short' %}
+                <input type="text" name="q_{{ question.id }}" class="form-control"
+                    value="{% if saved %}{{ saved.text }}{% endif %}">
+
+            {% elif question.question_type == 'long' %}
+                <textarea name="q_{{ question.id }}" class="form-control" rows="4">{% if saved %}{{ saved.text }}{% endif %}</textarea>
+
+            {% elif question.question_type == 'file' %}
+                {% if saved and saved.text %}
+                <p class="text-muted small mb-1"><i class="bi bi-check-circle text-success"></i> Файл уже загружен</p>
+                {% endif %}
+                <input type="file" name="q_{{ question.id }}" class="form-control">
+            {% endif %}
+        </div>
+        {% endwith %}
+        {% endfor %}
+
+        <div class="d-flex gap-3 mt-3">
+            <button type="submit" class="btn btn-primary flex-grow-1 py-3 fs-5">Сдать тест</button>
+            <button type="button" class="btn btn-outline-secondary py-3" onclick="saveProgress()">
+                <i class="bi bi-floppy"></i> Сохранить
+            </button>
+        </div>
+    </form>
+</div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function saveProgress() {
+    const form = document.getElementById('testForm');
+    form.action = '/tests/{{ test.pk }}/save/';
+    form.submit();
+}
+setInterval(saveProgress, 30000);
+</script>
+{% if test.time_limit %}
+<script>
+let seconds = {{ test.time_limit }} * 60;
+const timer = document.getElementById('timer');
+const interval = setInterval(() => {
+    seconds--;
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    timer.textContent = `${m}:${s}`;
+    if (seconds <= 60) timer.classList.replace('bg-warning', 'bg-danger');
+    if (seconds <= 0) { clearInterval(interval); document.getElementById('testForm').submit(); }
+}, 1000);
+</script>
+{% endif %}
+{% endblock %}

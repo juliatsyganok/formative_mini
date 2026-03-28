@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Мои классы{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0">Мои классы</h2>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#joinModal">
+        <i class="bi bi-plus-lg"></i> Войти в класс
+    </button>
+</div>
+
+{% if memberships %}
+<div class="row g-4">
+    {% for m in memberships %}
+    <div class="col-md-4">
+        <div class="card p-4 h-100">
+            <h5 class="fw-bold">{{ m.classroom.name }}</h5>
+            <p class="text-muted">Учитель: {{ m.classroom.teacher.get_full_name|default:m.classroom.teacher.username }}</p>
+            <a href="/classroom/{{ m.classroom.pk }}/" class="btn btn-outline-primary btn-sm mt-auto">Открыть</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center text-muted mt-5">
+    <i class="bi bi-door-open" style="font-size:3rem"></i>
+    <p class="mt-2">Вы пока не в одном классе. Введите токен!</p>
+</div>
+{% endif %}
+
+<div class="modal fade" id="joinModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Войти в класс</h5></div>
+            <form method="post" action="/classroom/join/">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <label class="form-label">Токен класса</label>
+                    <input type="text" name="token" class="form-control" placeholder="Например: A1B2C3D4" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Войти</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Выбор роли{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card p-5 text-center">
+            <h3 class="mb-2 fw-bold">Кто вы?</h3>
+            <p class="text-muted mb-4">Выберите роль — изменить её потом нельзя</p>
+            <form method="post">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-6">
+                        <button type="submit" name="role" value="teacher" class="btn btn-outline-primary w-100 py-4">
+                            <i class="bi bi-person-workspace d-block" style="font-size:2.5rem"></i>
+                            <span class="fw-bold mt-2 d-block">Учитель</span>
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button type="submit" name="role" value="student" class="btn btn-outline-success w-100 py-4">
+                            <i class="bi bi-mortarboard d-block" style="font-size:2.5rem"></i>
+                            <span class="fw-bold mt-2 d-block">Ученик</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

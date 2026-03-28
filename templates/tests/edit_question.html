@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}Редактировать вопрос{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-md-7">
+    <div class="card p-4">
+        <h5 class="fw-bold mb-3">Редактировать вопрос</h5>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Текст вопроса</label>
+                <textarea name="text" class="form-control" rows="3" required>{{ question.text }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Баллы</label>
+                <input type="number" name="points" class="form-control" value="{{ question.points }}" min="1">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Заменить картинку</label>
+                <input type="file" name="image" class="form-control" accept="image/*">
+                {% if question.image %}
+                <img src="{{ question.image.url }}" class="img-fluid rounded mt-2" style="max-height:150px">
+                {% endif %}
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Заменить файл</label>
+                <input type="file" name="attachment" class="form-control">
+            </div>
+
+            {% if question.question_type == 'short' %}
+            <div class="mb-3">
+                <label class="form-label">Правильный ответ (через | если несколько)</label>
+                <input type="text" name="correct_short_answer" class="form-control" value="{{ question.correct_short_answer }}">
+            </div>
+            {% endif %}
+
+            {% if question.question_type in 'single,multiple' %}
+            <div class="mb-3">
+                <label class="form-label">Варианты ответов <small class="text-muted">(галочка = правильный)</small></label>
+                <div id="choicesList">
+                    {% for choice in question.choices.all %}
+                    <div class="input-group mb-1">
+                        <div class="input-group-text">
+                            <input type="checkbox" name="choice_correct" value="{{ forloop.counter0 }}" {% if choice.is_correct %}checked{% endif %}>
+                        </div>
+                        <input type="text" name="choice_text" class="form-control" value="{{ choice.text }}">
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="button" class="btn btn-outline-secondary btn-sm mt-1" onclick="addChoice()">+ Вариант</button>
+            </div>
+            {% endif %}
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+                <a href="/tests/{{ question.test.pk }}/edit/" class="btn btn-outline-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+let choiceCount = {{ question.choices.count }};
+function addChoice() {
+    const div = document.createElement('div');
+    div.className = 'input-group mb-1';
+    div.innerHTML = `
+        <div class="input-group-text">
+            <input type="checkbox" name="choice_correct" value="${choiceCount}">
+        </div>
+        <input type="text" name="choice_text" class="form-control" placeholder="Новый вариант">
+    `;
+    document.getElementById('choicesList').appendChild(div);
+    choiceCount++;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,6 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3 class="fw-bold">{{ test.title }}</h3>
+<p class="text-muted">{{ test.description }}</p>
+<a href="/tests/{{ test.pk }}/take/" class="btn btn-primary">Начать тест</a>
+{% endblock %}

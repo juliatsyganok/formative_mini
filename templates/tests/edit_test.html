@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% block title %}Редактор теста{% endblock %}
+{% block content %}
+<div class="row">
+<!-- Левая колонка: настройки теста -->
+<div class="col-md-4">
+    <div class="card p-4 mb-4">
+        <h5 class="fw-bold mb-3">Настройки теста</h5>
+        <form method="post" action="/tests/{{ test.pk }}/edit/">
+            {% csrf_token %}
+            <div class="mb-2">
+                <label class="form-label small">Название</label>
+                <input type="text" name="title" class="form-control" value="{{ test.title }}" required>
+            </div>
+            <div class="mb-2">
+                <label class="form-label small">Описание</label>
+                <textarea name="description" class="form-control" rows="2">{{ test.description }}</textarea>
+            </div>
+            <div class="mb-2">
+                <label class="form-label small">Время (мин, необязательно)</label>
+                <input type="number" name="time_limit" class="form-control" value="{{ test.time_limit|default:'' }}" min="1">
+            </div>
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" name="is_published" id="pub" {% if test.is_published %}checked{% endif %}>
+                <label class="form-check-label" for="pub">Опубликован</label>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 btn-sm">Сохранить</button>
+        </form>
+    </div>
+
+    <div class="card p-4">
+        <h5 class="fw-bold mb-3">Добавить вопрос</h5>
+        <form method="post" action="/tests/{{ test.pk }}/question/add/" enctype="multipart/form-data" id="addQuestionForm">
+            {% csrf_token %}
+            <div class="mb-2">
+                <label class="form-label small">Тип вопроса</label>
+                <select name="question_type" class="form-select" id="qTypeSelect">
+                    <option value="single">Один вариант</option>
+                    <option value="multiple">Несколько вариантов</option>
+                    <option value="short">Короткий ответ</option>
+                    <option value="long">Развёрнутый ответ</option>
+                    <option value="file">Загрузка файла</option>
+                </select>
+            </div>
+            <div class="mb-2">
+                <label class="form-label small">Текст вопроса</label>
+                <textarea name="text" class="form-control" rows="2" required></textarea>
+            </div>
+            <div class="mb-2">
+                <label class="form-label small">Баллы</label>
+                <input type="number" name="points" class="form-control" value="1" min="1">
+            </div>
+            <div class="mb-2">
+                <label class="form-label small">Картинка (необязательно)</label>
+                <input type="file" name="image" class="form-control" accept="image/*">
+            </div>
+            <div class="mb-2">
+                <label class="form-label small">Прикреплённый файл (необязательно)</label>
+                <input type="file" name="attachment" class="form-control">
+            </div>
+
+            <!-- Для короткого ответа -->
+            <div id="shortAnswerBlock" class="mb-2" style="display:none">
+                <label class="form-label small">Правильный ответ (через | если несколько)</label>
+                <input type="text" name="correct_short_answer" class="form-control" placeholder="кислород|O2|o2">
+            </div>
+
+            <!-- Варианты ответов -->
+            <div id="choicesBlock" style="display:none">
+                <label class="form-label small">Варианты ответов</label>
+                <div id="choicesList">
+                    {% for i in "0123" %}
+                    <div class="input-group mb-1">
+                        <div class="input-group-text">
+                            <input type="checkbox" name="choice_correct" value="{{ forloop.counter0 }}" title="Правильный">
+                        </div>
+                        <input type="text" name="choice_text" class="form-control" placeholder="Вариант {{ forloop.counter }}">
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="button" class="btn btn-outline-secondary btn-sm mt-1" onclick="addChoice()">+ Вариант</button>
+            </div>
+
+            <button type="submit" class="btn btn-success w-100 mt-3">Добавить вопрос</button>
+        </form>
+    </div>
+</div>
+
+<!-- Правая колонка: список вопросов -->
+<div class="col-md-8">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">Вопросы ({{ questions.count }})</h5>
+        <a href="/classroom/{{ test.classroom.pk }}/" class="btn btn-outline-secondary btn-sm">← К классу</a>
+    </div>
+
+    {% if not questions %}
+    <div class="card p-5 text-center text-muted">
+        <i class="bi bi-question-circle" style="font-size:2.5rem"></i>
+        <p class="mt-2">Вопросов пока нет. Добавьте первый!</p>
+    </div>
+    {% endif %}
+
+    {% for question in questions %}
+    <div class="card p-4 mb-3">
+        <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+                <span class="badge bg-secondary me-2">
+                    {% if question.question_type == 'single' %}Один вариант
+                    {% elif question.question_type == 'multiple' %}Несколько вариантов
+                    {% elif question.question_type == 'short' %}Короткий ответ
+                    {% elif question.question_type == 'long' %}Развёрнутый
+                    {% elif question.question_type == 'file' %}Файл{% endif %}
+                </span>
+                <span class="badge bg-primary">{{ question.points }} б.</span>
+                <p class="mt-2 mb-1 fw-semibold">{{ question.text }}</p>
+
+                {% if question.image %}
+                <img src="{{ question.image.url }}" class="img-fluid rounded mb-1" style="max-height:150px">
+                {% endif %}
+
+                {% if question.question_type in 'single,multiple' %}
+                <div class="mt-1">
+                    {% for choice in question.choices.all %}
+                    <span class="badge me-1 {% if choice.is_correct %}bg-success{% else %}bg-light text-dark{% endif %}">
+                        {% if choice.is_correct %}✓ {% endif %}{{ choice.text }}
+                    </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if question.correct_short_answer %}
+                <small class="text-muted">Ответ: {{ question.correct_short_answer }}</small>
+                {% endif %}
+            </div>
+            <div class="d-flex gap-1">
+    <a href="/tests/question/{{ question.pk }}/edit/" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-pencil"></i>
+    </a>
+    <a href="/tests/question/{{ question.pk }}/delete/" class="btn btn-outline-danger btn-sm"
+       onclick="return confirm('Удалить вопрос?')">
+        <i class="bi bi-trash"></i>
+    </a>
+</div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const qTypeSelect = document.getElementById('qTypeSelect');
+const choicesBlock = document.getElementById('choicesBlock');
+const shortAnswerBlock = document.getElementById('shortAnswerBlock');
+let choiceCount = 4;
+
+function updateForm() {
+    const val = qTypeSelect.value;
+    choicesBlock.style.display = (val === 'single' || val === 'multiple') ? 'block' : 'none';
+    shortAnswerBlock.style.display = val === 'short' ? 'block' : 'none';
+}
+
+function addChoice() {
+    const div = document.createElement('div');
+    div.className = 'input-group mb-1';
+    div.innerHTML = `
+        <div class="input-group-text">
+            <input type="checkbox" name="choice_correct" value="${choiceCount}" title="Правильный">
+        </div>
+        <input type="text" name="choice_text" class="form-control" placeholder="Вариант ${choiceCount + 1}">
+    `;
+    document.getElementById('choicesList').appendChild(div);
+    choiceCount++;
+}
+
+qTypeSelect.addEventListener('change', updateForm);
+updateForm();
+</script>
+{% endblock %}
