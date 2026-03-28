@@ -5,7 +5,13 @@ __pycache__/
 
 # C extensions
 *.so
-
+.env
+.venv
+__pycache__
+*.pyc
+db.sqlite3
+staticfiles
+media
 # Distribution / packaging
 .Python
 build/
