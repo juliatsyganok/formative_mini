@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Все тесты{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold mb-0">Мои тесты</h3>
+    <a href="/tests/create/" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Создать тест
+    </a>
+</div>
+
+{% if tests %}
+<div class="row g-3">
+    {% for test in tests %}
+    <div class="col-md-4">
+        <div class="card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <h6 class="fw-bold mb-0">{{ test.title }}</h6>
+                {% if test.is_published %}
+                <span class="badge bg-success">Опубликован</span>
+                {% else %}
+                <span class="badge bg-warning text-dark">Черновик</span>
+                {% endif %}
+            </div>
+            <p class="text-muted small mb-2">{{ test.description|truncatechars:60 }}</p>
+            {% if test.classroom %}
+            <p class="small mb-2">
+                <i class="bi bi-folder"></i> {{ test.classroom.name }}
+            </p>
+            {% else %}
+            <p class="small text-muted mb-2">
+                <i class="bi bi-folder-x"></i> Не добавлен в класс
+            </p>
+            {% endif %}
+            <p class="small mb-3">
+                <i class="bi bi-question-circle"></i> {{ test.questions.count }} вопросов
+                {% if test.time_limit %}
+                · <i class="bi bi-clock"></i> {{ test.time_limit }} мин
+                {% endif %}
+            </p>
+            <div class="d-flex gap-2 mt-auto flex-wrap">
+                <a href="/tests/{{ test.pk }}/edit/" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-pencil"></i> Редактировать
+                </a>
+                {% if not test.classroom %}
+                <a href="/tests/{{ test.pk }}/add-to-class/" class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-folder-plus"></i> В класс
+                </a>
+                {% else %}
+                <a href="/tests/{{ test.pk }}/assign/" class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-send"></i> Назначить
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center text-muted mt-5">
+    <i class="bi bi-file-earmark-text" style="font-size:3rem"></i>
+    <p class="mt-2">Тестов пока нет. Создайте первый!</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -13,7 +13,7 @@ def create_test(request, classroom_pk):
             title=request.POST.get('title'),
             description=request.POST.get('description', ''),
             time_limit=request.POST.get('time_limit') or None,
-            is_published=request.POST.get('is_published') == 'on'
+            created_by=request.user,
         )
         return redirect('edit_test', pk=test.pk)
     return render(request, 'tests/create_test.html', {'classroom': classroom})
@@ -296,3 +296,32 @@ def assign_test(request, pk):
         'classroom': classroom,
         'memberships': memberships,
     })
+
+@login_required
+def all_tests(request):
+    tests = Test.objects.filter(created_by=request.user)
+    return render(request, 'tests/all_tests.html', {'tests': tests})
+
+@login_required
+def create_test_standalone(request):
+    if request.method == 'POST':
+        test = Test.objects.create(
+            title=request.POST.get('title'),
+            description=request.POST.get('description', ''),
+            time_limit=request.POST.get('time_limit') or None,
+            created_by=request.user,
+        )
+        return redirect('edit_test', pk=test.pk)
+    return render(request, 'tests/create_test_standalone.html')
+
+@login_required
+def add_test_to_class(request, pk):
+    test = get_object_or_404(Test, pk=pk)
+    classrooms = Classroom.objects.filter(teacher=request.user)
+    if request.method == 'POST':
+        classroom_id = request.POST.get('classroom_id')
+        classroom = get_object_or_404(Classroom, pk=classroom_id, teacher=request.user)
+        test.classroom = classroom
+        test.save()
+        return redirect('assign_test', pk=test.pk)
+    return render(request, 'tests/add_to_class.html', {'test': test, 'classrooms': classrooms})

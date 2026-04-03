@@ -14,4 +14,7 @@ urlpatterns = [
     path('question/<int:pk>/edit/', views.edit_question, name='edit_question'),
     path('<int:pk>/save/', views.save_progress, name='save_progress'),
     path('<int:pk>/assign/', views.assign_test, name='assign_test'),
+    path('', views.all_tests, name='all_tests'),
+    path('create/', views.create_test_standalone, name='create_test_standalone'),
+    path('<int:pk>/add-to-class/', views.add_test_to_class, name='add_test_to_class'),  
 ]

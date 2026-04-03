@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Добавить в класс{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-md-6">
+    <div class="card p-4">
+        <h4 class="fw-bold mb-1">Добавить тест в класс</h4>
+        <p class="text-muted mb-4">{{ test.title }}</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Выберите класс</label>
+                {% if classrooms %}
+                {% for classroom in classrooms %}
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="classroom_id"
+                           value="{{ classroom.pk }}" id="c{{ classroom.pk }}" required>
+                    <label class="form-check-label" for="c{{ classroom.pk }}">
+                        <strong>{{ classroom.name }}</strong>
+                        <span class="text-muted small">({{ classroom.memberships.count }} учеников)</span>
+                    </label>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="text-muted">У вас пока нет классов. <a href="/">Создать класс</a></p>
+                {% endif %}
+            </div>
+            <button type="submit" class="btn btn-success w-100">Добавить в класс</button>
+            <a href="/tests/" class="btn btn-outline-secondary w-100 mt-2">Отмена</a>
+        </form>
+    </div>
+</div>
+</div>
+{% endblock %}

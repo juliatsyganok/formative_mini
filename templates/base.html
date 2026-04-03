@@ -22,6 +22,10 @@
     <div class="container">
         <a class="navbar-brand fw-bold" href="/"><i class="bi bi-lightning-charge-fill"></i> Formative</a>
         <div class="ms-auto d-flex align-items-center gap-3">
+            {% if user.is_teacher %}
+            <a href="/" class="nav-link">Классы</a>
+            <a href="/tests/" class="nav-link">Тесты</a>
+            {% endif %}
             <span class="navbar-text">{{ user.get_full_name|default:user.username }}</span>
             <a href="/users/logout/" class="btn btn-outline-light btn-sm">Выйти</a>
         </div>

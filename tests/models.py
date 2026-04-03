@@ -3,12 +3,13 @@ from django.conf import settings
 from classes.models import Classroom
 
 class Test(models.Model):
-    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, related_name='tests')
+    classroom = models.ForeignKey(Classroom, on_delete=models.SET_NULL, null=True, blank=True, related_name='tests')
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     time_limit = models.PositiveIntegerField(null=True, blank=True, help_text='Минуты. Пусто = без ограничения')
     is_published = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True, related_name='created_tests')
     assigned_to_all = models.BooleanField(default=True)
 
     def __str__(self):
