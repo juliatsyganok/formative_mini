@@ -265,3 +265,34 @@ def save_progress(request, pk):
         answer.save()
 
     return redirect('take_test', pk=pk)
+
+
+@login_required
+def assign_test(request, pk):
+    test = get_object_or_404(Test, pk=pk)
+    classroom = test.classroom
+    memberships = classroom.memberships.select_related('student')
+
+    if request.method == 'POST':
+        assign_to = request.POST.get('assign_to')
+        test.is_published = True
+
+        if assign_to == 'all':
+            test.assigned_to_all = True
+            test.assignments.all().delete()
+        else:
+            test.assigned_to_all = False
+            test.assignments.all().delete()
+            student_ids = request.POST.getlist('students')
+            from .models import TestAssignment
+            for sid in student_ids:
+                TestAssignment.objects.get_or_create(test=test, student_id=sid)
+
+        test.save()
+        return redirect('classroom_detail', pk=classroom.pk)
+
+    return render(request, 'tests/assign_test.html', {
+        'test': test,
+        'classroom': classroom,
+        'memberships': memberships,
+    })

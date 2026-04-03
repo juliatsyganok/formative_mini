@@ -20,10 +20,12 @@
                 <label class="form-label small">Время (мин, необязательно)</label>
                 <input type="number" name="time_limit" class="form-control" value="{{ test.time_limit|default:'' }}" min="1">
             </div>
-            <div class="form-check mb-3">
-                <input class="form-check-input" type="checkbox" name="is_published" id="pub" {% if test.is_published %}checked{% endif %}>
-                <label class="form-check-label" for="pub">Опубликован</label>
-            </div>
+            <a href="/tests/{{ test.pk }}/assign/" class="btn btn-success w-100 btn-sm">
+                <i class="bi bi-send"></i> Опубликовать
+            </a>
+            {% if test.is_published %}
+                <p class="text-success small mt-1 mb-0"><i class="bi bi-check-circle"></i> Опубликован</p>
+            {% endif %}
             <button type="submit" class="btn btn-primary w-100 btn-sm">Сохранить</button>
         </form>
     </div>
@@ -62,7 +64,7 @@
             <!-- Для короткого ответа -->
             <div id="shortAnswerBlock" class="mb-2" style="display:none">
                 <label class="form-label small">Правильный ответ (через | если несколько)</label>
-                <input type="text" name="correct_short_answer" class="form-control" placeholder="кислород|O2|o2">
+                <input type="text" name="correct_short_answer" class="form-control" placeholder=" ">
             </div>
 
             <!-- Варианты ответов -->
@@ -96,7 +98,7 @@
     {% if not questions %}
     <div class="card p-5 text-center text-muted">
         <i class="bi bi-question-circle" style="font-size:2.5rem"></i>
-        <p class="mt-2">Вопросов пока нет. Добавьте первый!</p>
+        <p class="mt-2">Вопросов пока нет. Добавьте первый</p>
     </div>
     {% endif %}
 

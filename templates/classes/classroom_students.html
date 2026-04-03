@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Ученики — {{ classroom.name }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">Ученики класса</h4>
+        <span class="text-muted">{{ classroom.name }}</span>
+    </div>
+    <a href="/classroom/{{ classroom.pk }}/" class="btn btn-outline-secondary btn-sm">← Назад</a>
+</div>
+
+{% if memberships %}
+<div class="card">
+    <table class="table mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>#</th>
+                <th>Имя</th>
+                <th>Логин</th>
+                <th>Email</th>
+                <th>Вступил</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for m in memberships %}
+        <tr>
+            <td class="text-muted">{{ forloop.counter }}</td>
+            <td class="fw-semibold">{{ m.student.get_full_name|default:"—" }}</td>
+            <td>{{ m.student.username }}</td>
+            <td>{{ m.student.email|default:"—" }}</td>
+            <td class="text-muted small">{{ m.joined_at|date:"d.m.Y" }}</td>
+            <td>
+                <a href="/classroom/{{ classroom.pk }}/remove/{{ m.student.pk }}/"
+                   class="btn btn-outline-danger btn-sm"
+                   onclick="return confirm('Удалить {{ m.student.get_full_name|default:m.student.username }} из класса?')">
+                    <i class="bi bi-person-x"></i> Удалить
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="text-center text-muted mt-5">
+    <i class="bi bi-people" style="font-size:3rem"></i>
+    <p class="mt-2">В классе пока нет учеников</p>
+</div>
+{% endif %}
+{% endblock %}

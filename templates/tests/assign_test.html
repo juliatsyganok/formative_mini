@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}Публикация теста{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-md-6">
+    <div class="card p-4">
+        <h4 class="fw-bold mb-1">Опубликовать тест</h4>
+        <p class="text-muted mb-4">{{ test.title }}</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Кому назначить?</label>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="assign_to"
+                           value="all" id="assignAll" checked>
+                    <label class="form-check-label" for="assignAll">
+                        <strong>Всем ученикам</strong> класса ({{ memberships.count }} чел.)
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="assign_to"
+                           value="selected" id="assignSelected">
+                    <label class="form-check-label" for="assignSelected">
+                        <strong>Выбранным ученикам</strong>
+                    </label>
+                </div>
+            </div>
+
+            <div id="studentsList" style="display:none" class="mb-4">
+                <label class="form-label fw-semibold">Выберите учеников:</label>
+                {% if memberships %}
+                <div class="border rounded p-3">
+                    {% for m in memberships %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox"
+                               name="students" value="{{ m.student.pk }}" id="s{{ m.student.pk }}">
+                        <label class="form-check-label" for="s{{ m.student.pk }}">
+                            {{ m.student.get_full_name|default:m.student.username }}
+                            <span class="text-muted small">@{{ m.student.username }}</span>
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted small">В классе пока нет учеников</p>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-success w-100">
+                <i class="bi bi-send"></i> Опубликовать
+            </button>
+            <a href="/tests/{{ test.pk }}/edit/" class="btn btn-outline-secondary w-100 mt-2">Отмена</a>
+        </form>
+    </div>
+</div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.querySelectorAll('input[name="assign_to"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+        document.getElementById('studentsList').style.display =
+            radio.value === 'selected' ? 'block' : 'none';
+    });
+});
+</script>
+{% endblock %}

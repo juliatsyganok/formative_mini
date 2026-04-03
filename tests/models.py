@@ -9,6 +9,7 @@ class Test(models.Model):
     time_limit = models.PositiveIntegerField(null=True, blank=True, help_text='Минуты. Пусто = без ограничения')
     is_published = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    assigned_to_all = models.BooleanField(default=True)
 
     def __str__(self):
         return self.title
@@ -69,3 +70,10 @@ class StudentAnswer(models.Model):
 
     class Meta:
         unique_together = ('session', 'question')
+
+class TestAssignment(models.Model):
+    test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name='assignments')
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='assignments')
+
+    class Meta:
+        unique_together = ('test', 'student')

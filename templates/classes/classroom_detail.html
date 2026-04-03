@@ -16,14 +16,17 @@
 </div>
 
 {% if user.is_teacher %}
-<div class="mb-4">
-    <h5>Ученики ({{ classroom.memberships.count }})</h5>
-    {% for m in classroom.memberships.all %}
-    <span class="badge bg-light text-dark me-1 mb-1 p-2">{{ m.student.get_full_name|default:m.student.username }}</span>
-    {% empty %}
-    <p class="text-muted small">Пока никто не вступил. Поделитесь токеном!</p>
-    {% endfor %}
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <h5 class="mb-0">Ученики ({{ classroom.memberships.count }})</h5>
+    <a href="/classroom/{{ classroom.pk }}/students/" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-people"></i> Управление
+    </a>
 </div>
+{% for m in classroom.memberships.all %}
+<span class="badge bg-light text-dark me-1 mb-1 p-2">{{ m.student.get_full_name|default:m.student.username }}</span>
+{% empty %}
+<p class="text-muted small">Пока никто не вступил</p>
+{% endfor %}
 {% endif %}
 
 <h5 class="mb-3">Тесты</h5>

@@ -22,7 +22,16 @@ def student_dashboard(request):
 @login_required
 def classroom_detail(request, pk):
     classroom = get_object_or_404(Classroom, pk=pk)
-    tests = classroom.tests.filter(is_published=True) if request.user.is_student() else classroom.tests.all()
+    if request.user.is_teacher():
+        tests = classroom.tests.all()
+    else:
+        from tests.models import TestAssignment
+        tests = []
+        for test in classroom.tests.filter(is_published=True):
+            if test.assigned_to_all:
+                tests.append(test)
+            elif TestAssignment.objects.filter(test=test, student=request.user).exists():
+                tests.append(test)
     return render(request, 'classes/classroom_detail.html', {'classroom': classroom, 'tests': tests})
 
 @login_required
@@ -38,3 +47,18 @@ def join_classroom(request):
         ClassMembership.objects.get_or_create(student=request.user, classroom=classroom)
         return redirect('classroom_detail', pk=classroom.pk)
     return render(request, 'classes/join_classroom.html', {'form': form})
+
+@login_required
+def remove_student(request, classroom_pk, student_pk):
+    classroom = get_object_or_404(Classroom, pk=classroom_pk, teacher=request.user)
+    ClassMembership.objects.filter(classroom=classroom, student_id=student_pk).delete()
+    return redirect('classroom_students', pk=classroom_pk)
+
+@login_required
+def classroom_students(request, pk):
+    classroom = get_object_or_404(Classroom, pk=pk, teacher=request.user)
+    memberships = classroom.memberships.select_related('student')
+    return render(request, 'classes/classroom_students.html', {
+        'classroom': classroom,
+        'memberships': memberships,
+    })
